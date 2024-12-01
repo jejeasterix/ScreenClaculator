@@ -1,24 +1,9 @@
 {
   "version": 2,
-  "public": true,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build",
-        "zeroConfig": true
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "^/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": ".*",
-      "dest": "/index.html"
-    }
+  "buildCommand": "CI=false npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
