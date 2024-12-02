@@ -165,7 +165,7 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
       }}
     >
       {isScreenTooTall && (
-        <Alert severity="warning" sx={{ position: 'absolute', top: 0 }}>
+        <Alert severity="warning" sx={{ position: 'absolute', top: 50 }}>
           Attention : L'écran est trop haut pour la pièce !
         </Alert>
       )}
