@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Paper, Button } from '@mui/material';
+import { Box, Paper, Button, useTheme, useMediaQuery } from '@mui/material';
 import { ScreenDimensions } from './components/ScreenDimensions';
 import { RoomDimensions } from './components/RoomDimensions';
 import { Visualization2D } from './components/Visualization2D';
@@ -19,6 +19,8 @@ interface RoomDimensionsData {
 }
 
 function App() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [isValidated, setIsValidated] = useState(false);
   const [needsValidation, setNeedsValidation] = useState(false);
   const [screenDimensions, setScreenDimensions] = useState<ScreenDimensionsData>({
@@ -71,14 +73,15 @@ function App() {
   return (
     <Box sx={{ 
       display: 'flex', 
+      flexDirection: isMobile ? 'column' : 'row',
       minHeight: '100vh',
       bgcolor: '#f5f5f5',
       p: 2,
       gap: 2
     }}>
-      {/* Colonne de gauche (1/3) - Dimensions */}
+      {/* Section des dimensions */}
       <Box sx={{ 
-        width: '33.33%',
+        width: isMobile ? '100%' : '33.33%',
         display: 'flex',
         flexDirection: 'column',
         gap: 2
@@ -105,16 +108,16 @@ function App() {
         </Button>
       </Box>
 
-      {/* Colonne de droite (2/3) - Visualisations */}
+      {/* Section des visualisations */}
       <Box sx={{ 
-        width: '66.67%',
+        width: isMobile ? '100%' : '66.67%',
         display: 'flex',
         flexDirection: 'column',
         gap: 2
       }}>
         {isValidated ? (
           <>
-            <Paper elevation={3} sx={{ flex: 1, minHeight: '45vh' }}>
+            <Paper elevation={3} sx={{ flex: 1, minHeight: isMobile ? '40vh' : '45vh' }}>
               <Box sx={{ p: 3 }}>
                 <h2>Visualisation 2D</h2>
                 <Visualization2D 
@@ -123,7 +126,7 @@ function App() {
                 />
               </Box>
             </Paper>
-            <Paper elevation={3} sx={{ flex: 1, minHeight: '45vh' }}>
+            <Paper elevation={3} sx={{ flex: 1, minHeight: isMobile ? '40vh' : '45vh' }}>
               <Box sx={{ p: 3 }}>
                 <h2>Visualisation 3D</h2>
                 <Visualization3D 
