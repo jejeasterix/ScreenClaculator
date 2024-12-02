@@ -48,16 +48,11 @@ function App() {
   });
 
   const handleValidation = () => {
-    // Vérifier que toutes les dimensions sont > 0
-    const isScreenValid = Object.values(screenDimensions).every(value => value > 0);
-    const isRoomValid = Object.values(roomDimensions).every(value => value > 0);
-    
-    if (isScreenValid && isRoomValid) {
-      setValidatedScreenDimensions(screenDimensions);
-      setValidatedRoomDimensions(roomDimensions);
-      setIsValidated(true);
-      setNeedsValidation(false);
-    }
+    // On valide toujours, peu importe les valeurs
+    setValidatedScreenDimensions(screenDimensions);
+    setValidatedRoomDimensions(roomDimensions);
+    setIsValidated(true);
+    setNeedsValidation(false);
   };
 
   const handleScreenDimensionsChange = (dimensions: ScreenDimensionsData) => {

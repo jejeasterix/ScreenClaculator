@@ -46,6 +46,8 @@ export const RoomDimensions: React.FC<Props> = ({ onDimensionsChange }) => {
     // Convertir et mettre à jour les dimensions si la valeur est valide
     const numValue = value === '' ? 0 : parseFloat(value);
     if (!isNaN(numValue)) {
+      // Pour la hauteur de l'écran, on garde la valeur en cm
+      // Pour les autres dimensions, on convertit de mètres en centimètres
       const newValue = field === 'screenHeight' ? numValue : numValue * 100;
       setDimensions(prev => ({
         ...prev,
@@ -66,31 +68,31 @@ export const RoomDimensions: React.FC<Props> = ({ onDimensionsChange }) => {
       
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <TextField
-          label="Largeur de la pièce (cm)"
+          label="Largeur de la pièce (m)"
           type="number"
           value={widthInput}
           onChange={(e) => handleInputChange('width', e.target.value)}
           fullWidth
-          inputProps={{ step: "1" }}
+          inputProps={{ step: "0.1" }}
         />
         <TextField
-          label="Profondeur de la pièce (cm)"
+          label="Profondeur de la pièce (m)"
           type="number"
           value={depthInput}
           onChange={(e) => handleInputChange('depth', e.target.value)}
           fullWidth
-          inputProps={{ step: "1" }}
+          inputProps={{ step: "0.1" }}
         />
         <TextField
-          label="Hauteur de la pièce (cm)"
+          label="Hauteur de la pièce (m)"
           type="number"
           value={heightInput}
           onChange={(e) => handleInputChange('height', e.target.value)}
           fullWidth
-          inputProps={{ step: "1" }}
+          inputProps={{ step: "0.1" }}
         />
         <TextField
-          label="Hauteur de l'écran (cm)"
+          label="Hauteur de pose de l'écran (cm)"
           type="number"
           value={screenHeightInput}
           onChange={(e) => handleInputChange('screenHeight', e.target.value)}

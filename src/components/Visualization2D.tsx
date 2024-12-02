@@ -38,41 +38,43 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
   }, []);
 
   // Constantes de style
-  const MARGIN = 80; // marge en px
-  const ARROW_SIZE = 10; // taille des flèches en px
-  const EXTENSION_LINE = 20; // longueur des lignes d'extension en px
-  const TEXT_OFFSET = 30; // décalage du texte en px
+  const MARGIN = 100; // marge en px
+  const ARROW_SIZE = 12; // taille des flèches en px
+  const EXTENSION_LINE = 25; // longueur des lignes d'extension en px
+  const TEXT_OFFSET = 35; // décalage du texte en px
 
-  // Calculer l'échelle dynamiquement
-  const calculateScale = () => {
-    if (!containerSize.width || !containerSize.height) return 1;
-
-    const availableWidth = containerSize.width - MARGIN * 2;
-    const availableHeight = containerSize.height - MARGIN * 2;
-
-    return Math.min(
-      availableWidth / roomDimensions.width,
-      availableHeight / roomDimensions.height
-    ) * 0.85; // 85% pour laisser de la place aux cotations
+  // Fonction pour formater les dimensions avec les bonnes unités
+  const formatDimension = (value: number, isScreenHeight: boolean = false) => {
+    if (isScreenHeight) {
+      // La hauteur de l'écran est déjà en centimètres
+      return `${Math.round(value)} cm`;
+    } else {
+      // Les dimensions de la pièce sont en centimètres, on les convertit en mètres
+      return `${(value / 100).toFixed(2)} m`;
+    }
   };
 
-  const SCALE_FACTOR = calculateScale();
+  // Dimensions fixes pour la visualisation
+  const FIXED_ROOM_HEIGHT = 600; // hauteur fixe de la pièce en pixels
+  const FIXED_ROOM_WIDTH = 800;  // largeur fixe de la pièce en pixels
+  const FIXED_SCREEN_HEIGHT = 200; // hauteur fixe de l'écran en pixels augmentée
+  const FIXED_SCREEN_WIDTH = 400;  // largeur fixe de l'écran en pixels augmentée
 
-  // Dimensions mises à l'échelle
+  // Position fixe de l'écran
+  const screenX = (FIXED_ROOM_WIDTH - FIXED_SCREEN_WIDTH) / 2;
+  const screenY = FIXED_ROOM_HEIGHT * 0.3; // Position plus haute à 30% de la hauteur de la pièce
+
+  // Dimensions fixes pour le rendu
   const scaledRoom = {
-    width: roomDimensions.width * SCALE_FACTOR,
-    depth: roomDimensions.depth * SCALE_FACTOR,
-    height: roomDimensions.height * SCALE_FACTOR
+    width: FIXED_ROOM_WIDTH,
+    depth: FIXED_ROOM_WIDTH,
+    height: FIXED_ROOM_HEIGHT
   };
 
   const scaledScreen = {
-    width: screenDimensions.width * SCALE_FACTOR,
-    height: screenDimensions.height * SCALE_FACTOR
+    width: FIXED_SCREEN_WIDTH,
+    height: FIXED_SCREEN_HEIGHT
   };
-
-  // Position de l'écran
-  const screenX = (scaledRoom.width - scaledScreen.width) / 2;
-  const screenY = (roomDimensions.screenHeight * SCALE_FACTOR);
 
   // Styles communs pour les lignes de cote
   const dimensionLineStyle = {
@@ -114,283 +116,287 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
       
       {/* Texte */}
       <text x={width/2} y={TEXT_OFFSET} {...dimensionTextStyle}>
-        {Math.round(value)} cm / {Math.round(value / 2.54)}"
+        {formatDimension(value)}
       </text>
     </g>
   );
 
   // Fonction pour dessiner une ligne de cote verticale
-  const VerticalDimension = ({ x, height, value, offset = 0 }: { x: number, height: number, value: number, offset?: number }) => (
-    <g transform={`translate(${x + offset}, 0)`}>
+  const VerticalDimension = ({ x, y = 0, height, value }: { x: number, y?: number, height: number, value: number }) => (
+    <g transform={`translate(${x}, ${y})`}>
       {/* Lignes d'extension */}
-      <line x1="0" y1="0" x2={-EXTENSION_LINE} y2="0" {...dimensionLineStyle} />
-      <line x1="0" y1={height} x2={-EXTENSION_LINE} y2={height} {...dimensionLineStyle} />
+      <line x1="0" y1="0" x2={EXTENSION_LINE/3} y2="0" {...dimensionLineStyle} />
+      <line x1="0" y1={height} x2={EXTENSION_LINE/3} y2={height} {...dimensionLineStyle} />
       
       {/* Ligne de cote */}
-      <line x1={-EXTENSION_LINE} y1="0" x2={-EXTENSION_LINE} y2={height} {...dimensionLineStyle} />
+      <line x1={EXTENSION_LINE/3} y1="0" x2={EXTENSION_LINE/3} y2={height} {...dimensionLineStyle} />
       
       {/* Flèches */}
-      <path d={`M ${-EXTENSION_LINE - ARROW_SIZE/2} ${ARROW_SIZE} L ${-EXTENSION_LINE} 0 L ${-EXTENSION_LINE + ARROW_SIZE/2} ${ARROW_SIZE}`} 
-            fill="none" {...dimensionLineStyle} />
-      <path d={`M ${-EXTENSION_LINE - ARROW_SIZE/2} ${height - ARROW_SIZE} L ${-EXTENSION_LINE} ${height} L ${-EXTENSION_LINE + ARROW_SIZE/2} ${height - ARROW_SIZE}`} 
-            fill="none" {...dimensionLineStyle} />
+      <path 
+        d={`M ${EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${EXTENSION_LINE/3} 0 L ${EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
+        fill="none" 
+        {...dimensionLineStyle} 
+      />
+      <path 
+        d={`M ${EXTENSION_LINE/3 + ARROW_SIZE/2} ${height - ARROW_SIZE} L ${EXTENSION_LINE/3} ${height} L ${EXTENSION_LINE/3 - ARROW_SIZE/2} ${height - ARROW_SIZE}`} 
+        fill="none" 
+        {...dimensionLineStyle} 
+      />
       
       {/* Texte */}
       <text x={-TEXT_OFFSET} y={height/2} transform={`rotate(-90, ${-TEXT_OFFSET}, ${height/2})`} {...dimensionTextStyle}>
-        {Math.round(value)} cm
+        {formatDimension(value)}
       </text>
     </g>
   );
 
-  const isScreenTooTall = (roomDimensions.screenHeight + screenDimensions.height) > roomDimensions.height;
+  // Vérifier si l'écran est trop haut seulement si la hauteur de la pièce est définie
+  const isScreenTooTall = roomDimensions.height > 0 && (roomDimensions.screenHeight + screenDimensions.height) > roomDimensions.height;
 
   return (
     <Box 
       ref={containerRef}
       sx={{ 
         width: '100%', 
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: '#fff',
-        p: 2,
-        boxSizing: 'border-box'
+        height: '600px', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center'
       }}
     >
       {isScreenTooTall && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <Alert severity="warning" sx={{ position: 'absolute', top: 0 }}>
           Attention : L'écran est trop haut pour la pièce !
         </Alert>
       )}
 
-      <Box sx={{ 
-        flexGrow: 1, 
-        position: 'relative',
-        minHeight: 0 // Important pour que flexGrow fonctionne correctement
-      }}>
-        <svg
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${scaledRoom.width + MARGIN * 2} ${scaledRoom.height + MARGIN * 2}`}
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <g transform={`translate(${MARGIN}, ${MARGIN})`}>
-            {/* Grille de fond */}
-            <g opacity="0.1">
-              {Array.from({ length: Math.floor(scaledRoom.width / 50) + 1 }).map((_, i) => (
-                <line
-                  key={`vertical-${i}`}
-                  x1={i * 50}
-                  y1="0"
-                  x2={i * 50}
-                  y2={scaledRoom.height}
-                  stroke="#000"
-                  strokeWidth="0.5"
-                />
-              ))}
-              {Array.from({ length: Math.floor(scaledRoom.height / 50) + 1 }).map((_, i) => (
-                <line
-                  key={`horizontal-${i}`}
-                  x1="0"
-                  y1={i * 50}
-                  x2={scaledRoom.width}
-                  y2={i * 50}
-                  stroke="#000"
-                  strokeWidth="0.5"
-                />
-              ))}
-            </g>
+      <svg
+        width={FIXED_ROOM_WIDTH + MARGIN * 2}
+        height={FIXED_ROOM_HEIGHT + MARGIN * 2}
+        viewBox={`0 0 ${FIXED_ROOM_WIDTH + MARGIN * 2} ${FIXED_ROOM_HEIGHT + MARGIN * 2}`}
+      >
+        <g transform={`translate(${MARGIN}, ${MARGIN})`}>
+          {/* Grille de fond */}
+          <g opacity="0.1">
+            {Array.from({ length: Math.floor(scaledRoom.width / 50) + 1 }).map((_, i) => (
+              <line
+                key={`vertical-${i}`}
+                x1={i * 50}
+                y1="0"
+                x2={i * 50}
+                y2={scaledRoom.height}
+                stroke="#000"
+                strokeWidth="0.5"
+              />
+            ))}
+            {Array.from({ length: Math.floor(scaledRoom.height / 50) + 1 }).map((_, i) => (
+              <line
+                key={`horizontal-${i}`}
+                x1="0"
+                y1={i * 50}
+                x2={scaledRoom.width}
+                y2={i * 50}
+                stroke="#000"
+                strokeWidth="0.5"
+              />
+            ))}
+          </g>
 
-            {/* Plafond */}
-            <rect
-              x="0"
-              y="0"
-              width={scaledRoom.width}
-              height="20"
-              fill="#f0f0f0"
-              stroke="#ccc"
-              strokeWidth="1"
+          {/* Plafond */}
+          <rect
+            x="0"
+            y="0"
+            width={scaledRoom.width}
+            height="20"
+            fill="#f0f0f0"
+            stroke="#ccc"
+            strokeWidth="1"
+          />
+          <text x={scaledRoom.width/2} y="15" {...labelTextStyle}>
+            PLAFOND
+          </text>
+
+          {/* Sol */}
+          <rect
+            x="0"
+            y={scaledRoom.height - 20}
+            width={scaledRoom.width}
+            height="20"
+            fill="#f0f0f0"
+            stroke="#ccc"
+            strokeWidth="1"
+          />
+          <text x={scaledRoom.width/2} y={scaledRoom.height - 5} {...labelTextStyle}>
+            SOL
+          </text>
+
+          {/* Murs */}
+          <rect
+            x="0"
+            y="0"
+            width={scaledRoom.width}
+            height={scaledRoom.height}
+            fill="none"
+            stroke="#ccc"
+            strokeWidth="1"
+            strokeDasharray="5,5"
+          />
+
+          {/* Écran */}
+          <rect
+            x={screenX}
+            y={screenY}
+            width={scaledScreen.width}
+            height={scaledScreen.height}
+            fill="#e3f2fd"
+            stroke="#2196f3"
+            strokeWidth="4"
+          />
+
+          {/* Cotation de largeur de l'écran */}
+          <g transform={`translate(${screenX}, ${screenY + 8})`}>
+            {/* Lignes d'extension */}
+            <line x1="0" y1="0" x2="0" y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
+            <line x1={scaledScreen.width} y1="0" x2={scaledScreen.width} y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
+            
+            {/* Ligne de cote */}
+            <line x1="0" y1={EXTENSION_LINE/3} x2={scaledScreen.width} y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
+            
+            {/* Flèches */}
+            <path 
+              d={`M ${ARROW_SIZE} ${EXTENSION_LINE/3 - ARROW_SIZE/2} L 0 ${EXTENSION_LINE/3} L ${ARROW_SIZE} ${EXTENSION_LINE/3 + ARROW_SIZE/2}`} 
+              fill="none" 
+              {...dimensionLineStyle} 
             />
-            <text x={scaledRoom.width/2} y="15" {...labelTextStyle}>
-              PLAFOND
-            </text>
-
-            {/* Sol */}
-            <rect
-              x="0"
-              y={scaledRoom.height - 20}
-              width={scaledRoom.width}
-              height="20"
-              fill="#f0f0f0"
-              stroke="#ccc"
-              strokeWidth="1"
+            <path 
+              d={`M ${scaledScreen.width - ARROW_SIZE} ${EXTENSION_LINE/3 - ARROW_SIZE/2} L ${scaledScreen.width} ${EXTENSION_LINE/3} L ${scaledScreen.width - ARROW_SIZE} ${EXTENSION_LINE/3 + ARROW_SIZE/2}`} 
+              fill="none" 
+              {...dimensionLineStyle} 
             />
-            <text x={scaledRoom.width/2} y={scaledRoom.height - 5} {...labelTextStyle}>
-              SOL
-            </text>
-
-            {/* Murs */}
-            <rect
-              x="0"
-              y="0"
-              width={scaledRoom.width}
-              height={scaledRoom.height}
-              fill="none"
-              stroke="#ccc"
-              strokeWidth="1"
-              strokeDasharray="5,5"
-            />
-
-            {/* Écran */}
-            <rect
-              x={screenX}
-              y={screenY}
-              width={scaledScreen.width}
-              height={scaledScreen.height}
-              fill="#e3f2fd"
-              stroke="#2196f3"
-              strokeWidth="4"
-            />
-
-            {/* Cotation de largeur de l'écran */}
-            <g transform={`translate(${screenX}, ${screenY + 8})`}>
-              {/* Lignes d'extension */}
-              <line x1="0" y1="0" x2="0" y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
-              <line x1={scaledScreen.width} y1="0" x2={scaledScreen.width} y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
-              
-              {/* Ligne de cote */}
-              <line x1="0" y1={EXTENSION_LINE/3} x2={scaledScreen.width} y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
-              
-              {/* Flèches */}
-              <path 
-                d={`M ${ARROW_SIZE} ${EXTENSION_LINE/3 - ARROW_SIZE/2} L 0 ${EXTENSION_LINE/3} L ${ARROW_SIZE} ${EXTENSION_LINE/3 + ARROW_SIZE/2}`} 
-                fill="none" 
-                {...dimensionLineStyle} 
-              />
-              <path 
-                d={`M ${scaledScreen.width - ARROW_SIZE} ${EXTENSION_LINE/3 - ARROW_SIZE/2} L ${scaledScreen.width} ${EXTENSION_LINE/3} L ${scaledScreen.width - ARROW_SIZE} ${EXTENSION_LINE/3 + ARROW_SIZE/2}`} 
-                fill="none" 
-                {...dimensionLineStyle} 
-              />
-              
-              {/* Texte */}
-              <text 
-                x={scaledScreen.width/2} 
-                y={TEXT_OFFSET/3} 
-                {...dimensionTextStyle}
-                fill="#2196f3"
-                dominantBaseline="hanging"
-              >
-                {Math.round(screenDimensions.width)} cm / {Math.round(screenDimensions.width / 2.54)}"
-              </text>
-            </g>
-
-            {/* Cotation de hauteur de l'écran */}
-            <g transform={`translate(${screenX + scaledScreen.width - 8}, ${screenY})`}>
-              {/* Lignes d'extension */}
-              <line x1="0" y1="0" x2={-EXTENSION_LINE/3} y2="0" {...dimensionLineStyle} />
-              <line x1="0" y1={scaledScreen.height} x2={-EXTENSION_LINE/3} y2={scaledScreen.height} {...dimensionLineStyle} />
-              
-              {/* Ligne de cote */}
-              <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledScreen.height} {...dimensionLineStyle} />
-              
-              {/* Flèches */}
-              <path 
-                d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${-EXTENSION_LINE/3} 0 L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
-                fill="none" 
-                {...dimensionLineStyle} 
-              />
-              <path 
-                d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${scaledScreen.height - ARROW_SIZE} L ${-EXTENSION_LINE/3} ${scaledScreen.height} L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${scaledScreen.height - ARROW_SIZE}`} 
-                fill="none" 
-                {...dimensionLineStyle} 
-              />
-              
-              {/* Texte */}
-              <text 
-                x={-TEXT_OFFSET} 
-                y={scaledScreen.height/2}
-                {...dimensionTextStyle}
-                fill="#2196f3"
-                transform={`rotate(90, ${-TEXT_OFFSET}, ${scaledScreen.height/2})`}
-              >
-                {Math.round(screenDimensions.height)} cm / {Math.round(screenDimensions.height / 2.54)}"
-              </text>
-            </g>
-
-            {/* Hauteur de l'écran (entre le sol et l'écran) */}
-            <g transform={`translate(${screenX + scaledScreen.width/2}, ${screenY + scaledScreen.height})`}>
-              {/* Lignes d'extension */}
-              <line x1="0" y1="0" x2={-EXTENSION_LINE/3} y2="0" {...dimensionLineStyle} />
-              <line x1="0" y1={scaledRoom.height - screenY - scaledScreen.height - 20} x2={-EXTENSION_LINE/3} y2={scaledRoom.height - screenY - scaledScreen.height - 20} {...dimensionLineStyle} />
-              
-              {/* Ligne de cote */}
-              <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledRoom.height - screenY - scaledScreen.height - 20} {...dimensionLineStyle} />
-              
-              {/* Flèches */}
-              <path 
-                d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${-EXTENSION_LINE/3} 0 L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
-                fill="none" 
-                {...dimensionLineStyle} 
-              />
-              <path 
-                d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE} L ${-EXTENSION_LINE/3} ${scaledRoom.height - screenY - scaledScreen.height - 20} L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE}`} 
-                fill="none" 
-                {...dimensionLineStyle} 
-              />
-              
-              {/* Texte */}
-              <text 
-                x={-TEXT_OFFSET} 
-                y={(scaledRoom.height - screenY - scaledScreen.height - 20)/2}
-                {...dimensionTextStyle}
-                transform={`rotate(90, ${-TEXT_OFFSET}, ${(scaledRoom.height - screenY - scaledScreen.height - 20)/2})`}
-              >
-                {Math.round(roomDimensions.screenHeight)} cm
-              </text>
-            </g>
-
-            {/* Cotation diagonale de l'écran */}
-            <g transform={`translate(${screenX}, ${screenY})`}>
-              {/* Ligne diagonale en pointillés */}
-              <line 
-                x1="0" 
-                y1={scaledScreen.height} 
-                x2={scaledScreen.width} 
-                y2="0"
-                stroke="#2196f3"
-                strokeWidth="1"
-                strokeDasharray="4,4"
-              />
-              
-              {/* Texte */}
-              <text 
-                x={scaledScreen.width/2} 
-                y={scaledScreen.height/2}
-                {...dimensionTextStyle}
-                fill="#2196f3"
-                transform={`rotate(-${Math.atan2(scaledScreen.height, scaledScreen.width) * (180/Math.PI)}, ${scaledScreen.width/2}, ${scaledScreen.height/2})`}
-                textAnchor="middle"
-                dominantBaseline="middle"
-              >
-                <tspan dy="-12">{Math.round(screenDimensions.diagonal)} cm</tspan>
-                <tspan x={scaledScreen.width/2} dy="24">{Math.round(screenDimensions.diagonal / 2.54)}"</tspan>
-              </text>
-            </g>
-
-            {/* Cotations de la pièce */}
-            <VerticalDimension x={-MARGIN/2} height={scaledRoom.height} value={roomDimensions.height} />
+            
+            {/* Texte */}
             <text 
-              x={-MARGIN} 
-              y={scaledRoom.height/2} 
-              {...labelTextStyle}
-              textAnchor="end"
+              x={scaledScreen.width/2} 
+              y={TEXT_OFFSET/3} 
+              {...dimensionTextStyle}
+              fill="#2196f3"
+              dominantBaseline="hanging"
             >
-              Hauteur de salle
+              {formatDimension(screenDimensions.width)}
             </text>
           </g>
-        </svg>
-      </Box>
+
+          {/* Cotation de hauteur de l'écran */}
+          <g transform={`translate(${screenX + scaledScreen.width - 8}, ${screenY})`}>
+            {/* Lignes d'extension */}
+            <line x1="0" y1="0" x2={-EXTENSION_LINE/3} y2="0" {...dimensionLineStyle} />
+            <line x1="0" y1={scaledScreen.height} x2={-EXTENSION_LINE/3} y2={scaledScreen.height} {...dimensionLineStyle} />
+            
+            {/* Ligne de cote */}
+            <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledScreen.height} {...dimensionLineStyle} />
+            
+            {/* Flèches */}
+            <path 
+              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${-EXTENSION_LINE/3} 0 L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
+              fill="none" 
+              {...dimensionLineStyle} 
+            />
+            <path 
+              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${scaledScreen.height - ARROW_SIZE} L ${-EXTENSION_LINE/3} ${scaledScreen.height} L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${scaledScreen.height - ARROW_SIZE}`} 
+              fill="none" 
+              {...dimensionLineStyle} 
+            />
+            
+            {/* Texte */}
+            <text 
+              x={-TEXT_OFFSET} 
+              y={scaledScreen.height/2}
+              {...dimensionTextStyle}
+              fill="#2196f3"
+              transform={`rotate(90, ${-TEXT_OFFSET}, ${scaledScreen.height/2})`}
+            >
+              {formatDimension(screenDimensions.height)}
+            </text>
+          </g>
+
+          {/* Hauteur de l'écran (entre le sol et l'écran) */}
+          <g transform={`translate(${screenX + scaledScreen.width/2}, ${screenY + scaledScreen.height})`}>
+            {/* Lignes d'extension */}
+            <line x1="0" y1="0" x2={-EXTENSION_LINE/3} y2="0" {...dimensionLineStyle} />
+            <line x1="0" y1={scaledRoom.height - screenY - scaledScreen.height - 20} x2={-EXTENSION_LINE/3} y2={scaledRoom.height - screenY - scaledScreen.height - 20} {...dimensionLineStyle} />
+            
+            {/* Ligne de cote */}
+            <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledRoom.height - screenY - scaledScreen.height - 20} {...dimensionLineStyle} />
+            
+            {/* Flèches */}
+            <path 
+              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${-EXTENSION_LINE/3} 0 L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
+              fill="none" 
+              {...dimensionLineStyle} 
+            />
+            <path 
+              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE} L ${-EXTENSION_LINE/3} ${scaledRoom.height - screenY - scaledScreen.height - 20} L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE}`} 
+              fill="none" 
+              {...dimensionLineStyle} 
+            />
+            
+            {/* Texte */}
+            <text 
+              x={-TEXT_OFFSET} 
+              y={(scaledRoom.height - screenY - scaledScreen.height - 20)/2}
+              {...dimensionTextStyle}
+              transform={`rotate(90, ${-TEXT_OFFSET}, ${(scaledRoom.height - screenY - scaledScreen.height - 20)/2})`}
+            >
+              {formatDimension(roomDimensions.screenHeight, true)}
+            </text>
+          </g>
+
+          {/* Cotation diagonale de l'écran */}
+          <g transform={`translate(${screenX}, ${screenY})`}>
+            {/* Ligne diagonale en pointillés */}
+            <line 
+              x1="0" 
+              y1={scaledScreen.height} 
+              x2={scaledScreen.width} 
+              y2="0"
+              stroke="#2196f3"
+              strokeWidth="1"
+              strokeDasharray="4,4"
+            />
+            
+            {/* Texte */}
+            <text 
+              x={scaledScreen.width/2} 
+              y={scaledScreen.height/2}
+              {...dimensionTextStyle}
+              fill="#2196f3"
+              transform={`rotate(-${Math.atan2(scaledScreen.height, scaledScreen.width) * (180/Math.PI)}, ${scaledScreen.width/2}, ${scaledScreen.height/2})`}
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
+              <tspan dy="-12">{formatDimension(screenDimensions.diagonal)}</tspan>
+              <tspan x={scaledScreen.width/2} dy="24">{Math.round(screenDimensions.diagonal / 2.54)}"</tspan>
+            </text>
+          </g>
+
+          {/* Cotations de la pièce */}
+          <VerticalDimension 
+            x={scaledRoom.width + MARGIN/4 - 100} 
+            y={20} 
+            height={scaledRoom.height - 40} 
+            value={roomDimensions.height} 
+          />
+          <text 
+            x={scaledRoom.width + MARGIN/2 - 100} 
+            y={scaledRoom.height/2} 
+            {...labelTextStyle}
+            textAnchor="middle"
+            transform={`rotate(-90, ${scaledRoom.width + MARGIN/2 - 100}, ${scaledRoom.height/2})`}
+          >
+            Hauteur de salle
+          </text>
+        </g>
+      </svg>
     </Box>
   );
 };
