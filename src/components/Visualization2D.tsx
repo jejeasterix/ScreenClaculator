@@ -78,7 +78,7 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
 
   // Styles communs pour les lignes de cote
   const dimensionLineStyle = {
-    stroke: '#666',
+    stroke: '#000',
     strokeWidth: 1.5,
     strokeLinecap: 'square' as const
   };
@@ -86,7 +86,7 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
   const dimensionTextStyle = {
     fontFamily: 'Arial, sans-serif',
     fontSize: '14px',
-    fill: '#333',
+    fill: '#000',
     textAnchor: 'middle' as const,
     dominantBaseline: 'middle' as const
   };
@@ -94,7 +94,7 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
   const labelTextStyle = {
     fontFamily: 'Arial, sans-serif',
     fontSize: '16px',
-    fill: '#666',
+    fill: '#000',
     fontStyle: 'italic' as const
   };
 
@@ -106,13 +106,11 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
       <line x1={width} y1="0" x2={width} y2={EXTENSION_LINE} {...dimensionLineStyle} />
       
       {/* Ligne de cote */}
-      <line x1="0" y1={EXTENSION_LINE} x2={width} y2={EXTENSION_LINE} {...dimensionLineStyle} />
+      <line x1="0" y1={EXTENSION_LINE} x2={width} y2={EXTENSION_LINE} stroke="#000" strokeWidth={1.5} />
       
       {/* Flèches */}
-      <path d={`M ${ARROW_SIZE} ${EXTENSION_LINE - ARROW_SIZE/2} L 0 ${EXTENSION_LINE} L ${ARROW_SIZE} ${EXTENSION_LINE + ARROW_SIZE/2}`} 
-            fill="none" {...dimensionLineStyle} />
-      <path d={`M ${width - ARROW_SIZE} ${EXTENSION_LINE - ARROW_SIZE/2} L ${width} ${EXTENSION_LINE} L ${width - ARROW_SIZE} ${EXTENSION_LINE + ARROW_SIZE/2}`} 
-            fill="none" {...dimensionLineStyle} />
+      <polygon points={`0,${EXTENSION_LINE} ${ARROW_SIZE},${EXTENSION_LINE - ARROW_SIZE/2} ${ARROW_SIZE},${EXTENSION_LINE + ARROW_SIZE/2}`} fill="#000" />
+      <polygon points={`${width},${EXTENSION_LINE} ${width - ARROW_SIZE},${EXTENSION_LINE - ARROW_SIZE/2} ${width - ARROW_SIZE},${EXTENSION_LINE + ARROW_SIZE/2}`} fill="#000" />
       
       {/* Texte */}
       <text x={width/2} y={TEXT_OFFSET} {...dimensionTextStyle}>
@@ -129,22 +127,14 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
       <line x1="0" y1={height} x2={EXTENSION_LINE/3} y2={height} {...dimensionLineStyle} />
       
       {/* Ligne de cote */}
-      <line x1={EXTENSION_LINE/3} y1="0" x2={EXTENSION_LINE/3} y2={height} {...dimensionLineStyle} />
+      <line x1={EXTENSION_LINE/3} y1="0" x2={EXTENSION_LINE/3} y2={height} stroke="#000" strokeWidth={1.5} />
       
       {/* Flèches */}
-      <path 
-        d={`M ${EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${EXTENSION_LINE/3} 0 L ${EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
-        fill="none" 
-        {...dimensionLineStyle} 
-      />
-      <path 
-        d={`M ${EXTENSION_LINE/3 + ARROW_SIZE/2} ${height - ARROW_SIZE} L ${EXTENSION_LINE/3} ${height} L ${EXTENSION_LINE/3 - ARROW_SIZE/2} ${height - ARROW_SIZE}`} 
-        fill="none" 
-        {...dimensionLineStyle} 
-      />
+      <polygon points={`${EXTENSION_LINE/3 + ARROW_SIZE/2},${ARROW_SIZE} ${EXTENSION_LINE/3},${0} ${EXTENSION_LINE/3 - ARROW_SIZE/2},${ARROW_SIZE}`} fill="#000" />
+      <polygon points={`${EXTENSION_LINE/3 + ARROW_SIZE/2},${height - ARROW_SIZE} ${EXTENSION_LINE/3},${height} ${EXTENSION_LINE/3 - ARROW_SIZE/2},${height - ARROW_SIZE}`} fill="#000" />
       
-      {/* Texte */}
-      <text x={-TEXT_OFFSET} y={height/2} transform={`rotate(-90, ${-TEXT_OFFSET}, ${height/2})`} {...dimensionTextStyle}>
+      {/* Texte hauteur de la piece*/}
+      <text x={-TEXT_OFFSET + 20} y={height/2} transform={`rotate(-90, ${-TEXT_OFFSET + 20}, ${height/2})`} {...dimensionTextStyle}>
         {formatDimension(value)}
       </text>
     </g>
@@ -171,10 +161,26 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
       )}
 
       <svg
-        width={FIXED_ROOM_WIDTH + MARGIN * 2}
-        height={FIXED_ROOM_HEIGHT + MARGIN * 2}
-        viewBox={`0 0 ${FIXED_ROOM_WIDTH + MARGIN * 2} ${FIXED_ROOM_HEIGHT + MARGIN * 2}`}
+        width={scaledRoom.width + MARGIN * 2}
+        height={scaledRoom.height + MARGIN * 2}
+        viewBox={`0 0 ${scaledRoom.width + MARGIN * 2} ${scaledRoom.height + MARGIN * 2}`}
       >
+        <defs>
+          <linearGradient id="screenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ stopColor: '#1a5484', stopOpacity: 0.95 }} />
+            <stop offset="100%" style={{ stopColor: '#2196f3', stopOpacity: 0.85 }} />
+          </linearGradient>
+          <filter id="screenShadow">
+            <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.3"/>
+          </filter>
+          <linearGradient id="screenShine" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ stopColor: 'rgba(255,255,255,0)' }} />
+            <stop offset="45%" style={{ stopColor: 'rgba(255,255,255,0.1)' }} />
+            <stop offset="55%" style={{ stopColor: 'rgba(255,255,255,0.1)' }} />
+            <stop offset="100%" style={{ stopColor: 'rgba(255,255,255,0)' }} />
+          </linearGradient>
+        </defs>
+
         <g transform={`translate(${MARGIN}, ${MARGIN})`}>
           {/* Grille de fond */}
           <g opacity="0.1">
@@ -242,16 +248,38 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
             strokeDasharray="5,5"
           />
 
-          {/* Écran */}
-          <rect
-            x={screenX}
-            y={screenY}
-            width={scaledScreen.width}
-            height={scaledScreen.height}
-            fill="#e3f2fd"
-            stroke="#2196f3"
-            strokeWidth="4"
-          />
+          {/* Écran avec effets */}
+          <g transform={`translate(${screenX}, ${screenY})`}>
+            {/* Fond de l'écran avec ombre */}
+            <rect
+              width={scaledScreen.width}
+              height={scaledScreen.height}
+              fill="url(#screenGradient)"
+              filter="url(#screenShadow)"
+              rx="6"
+              ry="6"
+            />
+            
+            {/* Effet de brillance */}
+            <rect
+              width={scaledScreen.width}
+              height={scaledScreen.height}
+              fill="url(#screenShine)"
+              rx="6"
+              ry="6"
+            />
+            
+            {/* Bordure de l'écran */}
+            <rect
+              width={scaledScreen.width}
+              height={scaledScreen.height}
+              fill="none"
+              stroke="#000"
+              strokeWidth={3}
+              rx="6"
+              ry="6"
+            />
+          </g>
 
           {/* Cotation de largeur de l'écran */}
           <g transform={`translate(${screenX}, ${screenY + 8})`}>
@@ -260,26 +288,17 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
             <line x1={scaledScreen.width} y1="0" x2={scaledScreen.width} y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
             
             {/* Ligne de cote */}
-            <line x1="0" y1={EXTENSION_LINE/3} x2={scaledScreen.width} y2={EXTENSION_LINE/3} {...dimensionLineStyle} />
+            <line x1="0" y1={EXTENSION_LINE/3} x2={scaledScreen.width} y2={EXTENSION_LINE/3} stroke="#000" strokeWidth={1.5} />
             
             {/* Flèches */}
-            <path 
-              d={`M ${ARROW_SIZE} ${EXTENSION_LINE/3 - ARROW_SIZE/2} L 0 ${EXTENSION_LINE/3} L ${ARROW_SIZE} ${EXTENSION_LINE/3 + ARROW_SIZE/2}`} 
-              fill="none" 
-              {...dimensionLineStyle} 
-            />
-            <path 
-              d={`M ${scaledScreen.width - ARROW_SIZE} ${EXTENSION_LINE/3 - ARROW_SIZE/2} L ${scaledScreen.width} ${EXTENSION_LINE/3} L ${scaledScreen.width - ARROW_SIZE} ${EXTENSION_LINE/3 + ARROW_SIZE/2}`} 
-              fill="none" 
-              {...dimensionLineStyle} 
-            />
+            <polygon points={`0,${EXTENSION_LINE/3} ${ARROW_SIZE},${EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE},${EXTENSION_LINE/3 + ARROW_SIZE/2}`} fill="#000" />
+            <polygon points={`${scaledScreen.width},${EXTENSION_LINE/3} ${scaledScreen.width - ARROW_SIZE},${EXTENSION_LINE/3 - ARROW_SIZE/2} ${scaledScreen.width - ARROW_SIZE},${EXTENSION_LINE/3 + ARROW_SIZE/2}`} fill="#000" />
             
-            {/* Texte */}
+            {/* Texte largeur de l'écran*/}
             <text 
-              x={scaledScreen.width/2} 
-              y={TEXT_OFFSET/3} 
-              {...dimensionTextStyle}
-              fill="#2196f3"
+              x={scaledScreen.width/2}
+              y={TEXT_OFFSET/3+10} 
+              style={{ ...dimensionTextStyle, fill: '#000' }}
               dominantBaseline="hanging"
             >
               {formatDimension(screenDimensions.width)}
@@ -293,26 +312,17 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
             <line x1="0" y1={scaledScreen.height} x2={-EXTENSION_LINE/3} y2={scaledScreen.height} {...dimensionLineStyle} />
             
             {/* Ligne de cote */}
-            <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledScreen.height} {...dimensionLineStyle} />
+            <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledScreen.height} stroke="#000" strokeWidth={1.5} />
             
             {/* Flèches */}
-            <path 
-              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${-EXTENSION_LINE/3} 0 L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
-              fill="none" 
-              {...dimensionLineStyle} 
-            />
-            <path 
-              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${scaledScreen.height - ARROW_SIZE} L ${-EXTENSION_LINE/3} ${scaledScreen.height} L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${scaledScreen.height - ARROW_SIZE}`} 
-              fill="none" 
-              {...dimensionLineStyle} 
-            />
+            <polygon points={`${-EXTENSION_LINE/3},${0} ${-EXTENSION_LINE/3 - ARROW_SIZE/2},${ARROW_SIZE} ${-EXTENSION_LINE/3 + ARROW_SIZE/2},${ARROW_SIZE}`} fill="#000" />
+            <polygon points={`${-EXTENSION_LINE/3},${scaledScreen.height} ${-EXTENSION_LINE/3 - ARROW_SIZE/2},${scaledScreen.height - ARROW_SIZE} ${-EXTENSION_LINE/3 + ARROW_SIZE/2},${scaledScreen.height - ARROW_SIZE}`} fill="#000" />
             
-            {/* Texte */}
+            {/* Texte hauteur d'écran*/}
             <text 
               x={-TEXT_OFFSET} 
-              y={scaledScreen.height/2}
-              {...dimensionTextStyle}
-              fill="#2196f3"
+              y={scaledScreen.height/2-15}
+              style={{ ...dimensionTextStyle, fill: '#000' }}
               transform={`rotate(90, ${-TEXT_OFFSET}, ${scaledScreen.height/2})`}
             >
               {formatDimension(screenDimensions.height)}
@@ -326,26 +336,18 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
             <line x1="0" y1={scaledRoom.height - screenY - scaledScreen.height - 20} x2={-EXTENSION_LINE/3} y2={scaledRoom.height - screenY - scaledScreen.height - 20} {...dimensionLineStyle} />
             
             {/* Ligne de cote */}
-            <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledRoom.height - screenY - scaledScreen.height - 20} {...dimensionLineStyle} />
+            <line x1={-EXTENSION_LINE/3} y1="0" x2={-EXTENSION_LINE/3} y2={scaledRoom.height - screenY - scaledScreen.height - 20} stroke="#000" strokeWidth={1.5} />
             
             {/* Flèches */}
-            <path 
-              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${ARROW_SIZE} L ${-EXTENSION_LINE/3} 0 L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${ARROW_SIZE}`} 
-              fill="none" 
-              {...dimensionLineStyle} 
-            />
-            <path 
-              d={`M ${-EXTENSION_LINE/3 + ARROW_SIZE/2} ${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE} L ${-EXTENSION_LINE/3} ${scaledRoom.height - screenY - scaledScreen.height - 20} L ${-EXTENSION_LINE/3 - ARROW_SIZE/2} ${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE}`} 
-              fill="none" 
-              {...dimensionLineStyle} 
-            />
+            <polygon points={`${-EXTENSION_LINE/3},${0} ${-EXTENSION_LINE/3 - ARROW_SIZE/2},${ARROW_SIZE} ${-EXTENSION_LINE/3 + ARROW_SIZE/2},${ARROW_SIZE}`} fill="#000" />
+            <polygon points={`${-EXTENSION_LINE/3},${scaledRoom.height - screenY - scaledScreen.height - 20} ${-EXTENSION_LINE/3 - ARROW_SIZE/2},${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE} ${-EXTENSION_LINE/3 + ARROW_SIZE/2},${scaledRoom.height - screenY - scaledScreen.height - 20 - ARROW_SIZE}`} fill="#000" />
             
-            {/* Texte */}
+            {/* Texte hauteur de pose écran */}
             <text 
-              x={-TEXT_OFFSET} 
+              x={-TEXT_OFFSET}
               y={(scaledRoom.height - screenY - scaledScreen.height - 20)/2}
-              {...dimensionTextStyle}
-              transform={`rotate(90, ${-TEXT_OFFSET}, ${(scaledRoom.height - screenY - scaledScreen.height - 20)/2})`}
+              style={{ ...dimensionTextStyle, fill: '#000' }}
+              transform={`rotate(-90, ${-TEXT_OFFSET}, ${(scaledRoom.height - screenY - scaledScreen.height - 20)/2})`}
             >
               {formatDimension(roomDimensions.screenHeight, true)}
             </text>
@@ -353,23 +355,63 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
 
           {/* Cotation diagonale de l'écran */}
           <g transform={`translate(${screenX}, ${screenY})`}>
+            {/* Axe central de l'écran */}
+            <line 
+              x1="-100" 
+              y1={scaledScreen.height/2} 
+              x2={scaledScreen.width} 
+              y2={scaledScreen.height/2}
+              stroke="#000"
+              strokeWidth="1"
+              strokeDasharray="4,4"
+              strokeOpacity="0.3"
+            />
+            <text
+              x="-105"
+              y={scaledScreen.height/2 - 5}
+              style={{ ...dimensionTextStyle, fontSize: '12px', opacity: 0.5 }}
+              textAnchor="end"
+            >
+              Axe de l'écran
+            </text>
+
+            {/* Axe CFO/CFA */}
+            <line 
+              x1="-100" 
+              y1={scaledScreen.height - 30} 
+              x2={scaledScreen.width} 
+              y2={scaledScreen.height - 30}
+              stroke="#000"
+              strokeWidth="1"
+              strokeDasharray="4,4"
+              strokeOpacity="0.3"
+            />
+            <text
+              x="-105"
+              y={scaledScreen.height - 35}
+              style={{ ...dimensionTextStyle, fontSize: '12px', opacity: 0.5 }}
+              textAnchor="end"
+            >
+              Axe CFO/CFA
+            </text>
+
             {/* Ligne diagonale en pointillés */}
             <line 
               x1="0" 
               y1={scaledScreen.height} 
               x2={scaledScreen.width} 
               y2="0"
-              stroke="#2196f3"
+              stroke="#000"
               strokeWidth="1"
               strokeDasharray="4,4"
             />
             
-            {/* Texte */}
+            {/* Texte diagonale */}
             <text 
               x={scaledScreen.width/2} 
               y={scaledScreen.height/2}
               {...dimensionTextStyle}
-              fill="#2196f3"
+              fill="#000"
               transform={`rotate(-${Math.atan2(scaledScreen.height, scaledScreen.width) * (180/Math.PI)}, ${scaledScreen.width/2}, ${scaledScreen.height/2})`}
               textAnchor="middle"
               dominantBaseline="middle"
