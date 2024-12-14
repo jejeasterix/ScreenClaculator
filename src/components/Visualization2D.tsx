@@ -133,7 +133,8 @@ export const Visualization2D: React.FC<Visualization2DProps> = ({ screenDimensio
       <polygon points={`${EXTENSION_LINE/3 + ARROW_SIZE/2},${ARROW_SIZE} ${EXTENSION_LINE/3},${0} ${EXTENSION_LINE/3 - ARROW_SIZE/2},${ARROW_SIZE}`} fill="#000" />
       <polygon points={`${EXTENSION_LINE/3 + ARROW_SIZE/2},${height - ARROW_SIZE} ${EXTENSION_LINE/3},${height} ${EXTENSION_LINE/3 - ARROW_SIZE/2},${height - ARROW_SIZE}`} fill="#000" />
       
-      {/* Texte hauteur de la piece*/}
+      {/* Texte hauteur de la piecegit checkout mastergit checkout master
+      git pull origin master*/}
       <text x={-TEXT_OFFSET + 20} y={height/2} transform={`rotate(-90, ${-TEXT_OFFSET + 20}, ${height/2})`} {...dimensionTextStyle}>
         {formatDimension(value)}
       </text>
